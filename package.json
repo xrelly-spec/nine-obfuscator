@@ -1,0 +1,12 @@
+{
+  "name": "nine-obf",
+  "version": "1.0.0",
+  "description": "Lightweight JavaScript Obfuscator (AST Safe)",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "acorn": "^8.11.3",
+    "estraverse": "^5.3.0",
+    "escodegen": "^2.1.0"
+  }
+}
