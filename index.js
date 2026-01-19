@@ -9,14 +9,41 @@ const globalConceal = require("./transforms/globalConceal")
 const antiDebug = require("./transforms/antiDebug")
 
 module.exports = function nineObf(code, opt = {}) {
+  const options = {
+    stringEncrypt: true,
+    constantPool: true,
+    rename: true,
+    controlFlow: true,
+    globalConceal: true,
+    antiDebug: false,
+    ...opt
+  }
+
   const ast = parse(code)
 
-  stringEncrypt(ast, opt)
-  constantPool(ast)
-  identifierRename(ast)
-  controlFlow(ast)
-  globalConceal(ast)
-  antiDebug(ast)
+  if (options.stringEncrypt) {
+    stringEncrypt(ast, options)
+  }
+
+  if (options.constantPool) {
+    constantPool(ast, options)
+  }
+
+  if (options.rename) {
+    identifierRename(ast, options)
+  }
+
+  if (options.controlFlow) {
+    controlFlow(ast, options)
+  }
+  
+  if (options.globalConceal) {
+    globalConceal(ast, options)
+  }
+
+  if (options.antiDebug) {
+    antiDebug(ast, options)
+  }
 
   return generate(ast)
 }
