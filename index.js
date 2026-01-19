@@ -2,23 +2,21 @@ const parse = require("./core/parser")
 const generate = require("./core/generator")
 
 const stringEncrypt = require("./transforms/stringEncrypt")
+const identifierRename = require("./transforms/identifierRename")
+const constantPool = require("./transforms/constantPool")
+const controlFlow = require("./transforms/controlFlow")
 const globalConceal = require("./transforms/globalConceal")
 const antiDebug = require("./transforms/antiDebug")
 
-module.exports = function nineObf(code, options = {}) {
+module.exports = function nineObf(code, opt = {}) {
   const ast = parse(code)
 
-  if (options.stringEncrypt !== false) {
-    stringEncrypt(ast, options)
-  }
-
-  if (options.globalConceal !== false) {
-    globalConceal(ast, options)
-  }
-
-  if (options.antiDebug === true) {
-    antiDebug(ast, options)
-  }
+  stringEncrypt(ast, opt)
+  constantPool(ast)
+  identifierRename(ast)
+  controlFlow(ast)
+  globalConceal(ast)
+  antiDebug(ast)
 
   return generate(ast)
 }
