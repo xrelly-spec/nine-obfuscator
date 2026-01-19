@@ -1,0 +1,13 @@
+{
+  "name": "nine-jsconfuser",
+  "version": "1.0.0",
+  "description": "Simple JavaScript encryption using JsConfuser",
+  "main": "index.js",
+  "type": "commonjs",
+  "keywords": ["encrypt", "obfuscator", "jsconfuser"],
+  "author": "NineCore",
+  "license": "MIT",
+  "dependencies": {
+    "js-confuser": "^2.0.0"
+  }
+}
