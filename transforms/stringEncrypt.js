@@ -1,7 +1,7 @@
 const estraverse = require("estraverse")
 const { encryptString } = require("../core/encryptor")
 
-module.exports = function stringEncrypt(ast, options) {
+module.exports = function stringEncrypt(ast, options = {}) {
   const pool = []
   const decoderName = options.name || "__nine_decode"
 
@@ -12,19 +12,23 @@ module.exports = function stringEncrypt(ast, options) {
         typeof node.value === "string" &&
         node.value.length > 0
       ) {
-        const encrypted = encryptString(node.value)
-        const index = pool.push(encrypted) - 1
+        const encoded = encryptString(node.value)
+        const index = pool.push(encoded) - 1
 
         return {
           type: "CallExpression",
           callee: { type: "Identifier", name: decoderName },
-          arguments: [{ type: "Literal", value: index }]
+          arguments: [
+            { type: "Literal", value: index }
+          ]
         }
       }
     }
   })
 
-  ast.body.unshift(createDecoder(pool, decoderName))
+  if (pool.length > 0) {
+    ast.body.unshift(createDecoder(pool, decoderName))
+  }
 }
 
 function createDecoder(pool, name) {
@@ -35,6 +39,7 @@ function createDecoder(pool, name) {
     body: {
       type: "BlockStatement",
       body: [
+        // const data = [ "98,99,100", ... ]
         {
           type: "VariableDeclaration",
           kind: "const",
@@ -43,21 +48,68 @@ function createDecoder(pool, name) {
             id: { type: "Identifier", name: "data" },
             init: {
               type: "ArrayExpression",
-              elements: pool.map(v => ({ type: "Literal", value: v }))
+              elements: pool.map(v => ({
+                type: "Literal",
+                value: v
+              }))
             }
           }]
         },
+        // return data[i].split(",").map(c => String.fromCharCode(c - 1)).join("")
         {
           type: "ReturnStatement",
           argument: {
             type: "CallExpression",
-            callee: { type: "Identifier", name: "__nine_xor" },
-            arguments: [{
+            callee: {
               type: "MemberExpression",
-              object: { type: "Identifier", name: "data" },
-              property: { type: "Identifier", name: "i" },
-              computed: true
-            }]
+              object: {
+                type: "CallExpression",
+                callee: {
+                  type: "MemberExpression",
+                  object: {
+                    type: "CallExpression",
+                    callee: {
+                      type: "MemberExpression",
+                      object: {
+                        type: "MemberExpression",
+                        object: { type: "Identifier", name: "data" },
+                        property: { type: "Identifier", name: "i" },
+                        computed: true
+                      },
+                      property: { type: "Identifier", name: "split" }
+                    },
+                    arguments: [{ type: "Literal", value: "," }]
+                  },
+                  property: { type: "Identifier", name: "map" }
+                },
+                arguments: [{
+                  type: "FunctionExpression",
+                  params: [{ type: "Identifier", name: "c" }],
+                  body: {
+                    type: "BlockStatement",
+                    body: [{
+                      type: "ReturnStatement",
+                      argument: {
+                        type: "CallExpression",
+                        callee: {
+                          type: "MemberExpression",
+                          object: { type: "Identifier", name: "String" },
+                          property: { type: "Identifier", name: "fromCharCode" }
+                        },
+                        arguments: [{
+                          type: "BinaryExpression",
+                          operator: "-",
+                          left: { type: "Identifier", name: "c" },
+                          right: { type: "Literal", value: 1 }
+                        }]
+                      }
+                    }]
+                  }
+                }]
+              },
+              property: { type: "Identifier", name: "join" }
+            },
+            arguments: [{ type: "Literal", value: "" }]
           }
         }
       ]
